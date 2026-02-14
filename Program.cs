@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 class Program
 {
@@ -40,6 +41,7 @@ class Program
         }
     }
 
+
     static void DisplayAllCharacters(string[] lines)
     {
         // Skip the header row
@@ -48,6 +50,10 @@ class Program
             string line = lines[i];
 
             string name;
+            string profession;
+            string level;
+            string health;
+            string equipment;
             int commaIndex;
 
             // Check if the name is quoted
@@ -56,12 +62,47 @@ class Program
                 // TODO: Find the closing quote and the comma right after it
                 // TODO: Remove quotes from the name if present and parse the name
                 // name = ...
+
+                commaIndex = line.IndexOf('\"', 1);
+                name = line.Substring(1, commaIndex - 1);
+                var contLine = line.Substring(commaIndex + 2);
+
+                var newLines = contLine.Split(',');
+
+                profession = newLines[0];
+                level = newLines[1];
+                health = newLines[2];
+                equipment = newLines[3];
+
             }
             else
             {
-                // TODO: Name is not quoted, so store the name up to the first comma
-                // name =
+
+                var splitLine = line.Split(',');
+
+                name = splitLine[0];
+                profession = splitLine[1];
+                level = splitLine[2];
+                health = splitLine[3];
+                equipment = splitLine[4];
+
             }
+
+            Console.WriteLine($"   Name: {name}");
+            Console.WriteLine($"   Profession: {profession}");
+            Console.WriteLine($"   Level: {level}");
+            Console.WriteLine($"   Health: {health}");
+
+            var equipmentIndividuals = equipment.Split("|").ToList();
+
+            Console.WriteLine("   Equipment: ");
+
+            foreach (var item in equipmentIndividuals)
+            {
+                Console.WriteLine($"   - {item}"); 
+            }
+
+            Console.WriteLine();
 
             // TODO: Parse characterClass, level, hitPoints, and equipment
             // string characterClass = ...
@@ -78,10 +119,26 @@ class Program
 
     static void AddCharacter(ref string[] lines)
     {
-        // TODO: Implement logic to add a new character
-        // Prompt for character details (name, class, level, hit points, equipment)
-        // DO NOT just ask the user to enter a new line of CSV data or enter the pipe-separated equipment string
-        // Append the new character to the lines array
+
+        //Taken from my WK1 Repos
+        Console.WriteLine("\n=== Add New Character ===\n");
+
+        Console.WriteLine("Enter Name: ");
+        var charName = Console.ReadLine();
+        Console.WriteLine("Enter Class: ");
+        var charClass = Console.ReadLine();
+        Console.WriteLine("Enter Level: ");
+        var charLevel = Console.ReadLine();
+        Console.WriteLine("Enter HP: ");
+        var charHP = Console.ReadLine();
+        Console.WriteLine("Enter Equipment: ");
+        var charEquipment = Console.ReadLine();
+
+        var newChar = $"\n{charName}, {charClass}, {charLevel}, {charHP}, {charEquipment}";
+        File.AppendAllText("input.csv", newChar + Environment.NewLine);
+
+        Console.WriteLine(File.ReadAllText("input.csv"));
+        lines = File.ReadAllLines("input.csv");
     }
 
     static void LevelUpCharacter(string[] lines)
