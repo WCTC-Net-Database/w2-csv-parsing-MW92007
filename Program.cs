@@ -54,38 +54,36 @@ class Program
             string level;
             string health;
             string equipment;
-            int commaIndex;
 
             // Check if the name is quoted
             if (line.StartsWith("\""))
-            {
-                // TODO: Find the closing quote and the comma right after it
-                // TODO: Remove quotes from the name if present and parse the name
-                // name = ...
+{
+                int closingQuoteIndex = line.IndexOf('\"', 1);
+                if (closingQuoteIndex < 0) continue;
 
-                commaIndex = line.IndexOf('\"', 1);
-                name = line.Substring(1, commaIndex - 1);
-                var contLine = line.Substring(commaIndex + 2);
+                name = line.Substring(1, closingQuoteIndex - 1);
 
-                var newLines = contLine.Split(',');
+                string remainder = line.Substring(closingQuoteIndex + 2);
+                string[] newLines = remainder.Split(',');
+
+                if (newLines.Length < 4) continue;
 
                 profession = newLines[0];
                 level = newLines[1];
                 health = newLines[2];
                 equipment = newLines[3];
-
             }
             else
             {
+                string[] splitLine = line.Split(',');
 
-                var splitLine = line.Split(',');
+                if (splitLine.Length < 5) continue;
 
                 name = splitLine[0];
                 profession = splitLine[1];
                 level = splitLine[2];
                 health = splitLine[3];
                 equipment = splitLine[4];
-
             }
 
             Console.WriteLine($"   Name: {name}");
@@ -99,7 +97,7 @@ class Program
 
             foreach (var item in equipmentIndividuals)
             {
-                Console.WriteLine($"   - {item}"); 
+                Console.WriteLine($"   - {item}");
             }
 
             Console.WriteLine();
@@ -119,55 +117,68 @@ class Program
 
     static void AddCharacter(ref string[] lines)
     {
-
-        //Taken from my WK1 Repos
         Console.WriteLine("\n=== Add New Character ===\n");
 
-        Console.WriteLine("Enter Name: ");
+        Console.Write("Enter Name: ");
         var charName = Console.ReadLine();
-        Console.WriteLine("Enter Class: ");
+        Console.Write("Enter Class: ");
         var charClass = Console.ReadLine();
-        Console.WriteLine("Enter Level: ");
+        Console.Write("Enter Level: ");
         var charLevel = Console.ReadLine();
-        Console.WriteLine("Enter HP: ");
+        Console.Write("Enter HP: ");
         var charHP = Console.ReadLine();
-        Console.WriteLine("Enter Equipment: ");
+        Console.Write("Enter Equipment: ");
         var charEquipment = Console.ReadLine();
 
-        var newChar = $"\n{charName}, {charClass}, {charLevel}, {charHP}, {charEquipment}";
-        File.AppendAllText("input.csv", newChar + Environment.NewLine);
+        var newChar = $"{charName},{charClass},{charLevel},{charHP},{charEquipment}";
+        File.AppendAllText("input.csv", Environment.NewLine + newChar);
 
-        Console.WriteLine(File.ReadAllText("input.csv"));
         lines = File.ReadAllLines("input.csv");
     }
 
     static void LevelUpCharacter(string[] lines)
     {
         Console.Write("Enter the name of the character to level up: ");
-        string nameToLevelUp = Console.ReadLine();
+        string nameToLevelUp = (Console.ReadLine() ?? string.Empty).Trim();
 
-        // Loop through characters to find the one to level up
+        bool found = false;
+
         for (int i = 1; i < lines.Length; i++)
         {
-            string line = lines[i];
+            string[] fields = lines[i].Split(',');
 
-            // TODO: Check if the name matches the one to level up
-            // Do not worry about case sensitivity at this point
-            if (line.Contains(nameToLevelUp))
+            if (fields.Length < 5)
+                continue;
+
+            string name = fields[0].Trim();
+
+            if (name.Equals(nameToLevelUp, StringComparison.OrdinalIgnoreCase))
             {
+                found = true;
 
-                // TODO: Split the rest of the fields locating the level field
-                // string[] fields = ...
-                // int level = ...
+                if (int.TryParse(fields[2].Trim(), out int level) &&
+                    int.TryParse(fields[3].Trim(), out int hp))
+                {
+                    level += 1;
 
-                // TODO: Level up the character
-                // level++;
-                // Console.WriteLine($"Character {name} leveled up to level {level}!");
+                    fields[2] = level.ToString();
+                    fields[3] = hp.ToString();
 
-                // TODO: Update the line with the new level
-                // lines[i] = ...
+                    lines[i] = string.Join(",", fields);
+                }
+
                 break;
             }
         }
+
+        if (!found)
+        {
+            Console.WriteLine("Character not found.");
+            return;
+        }
+
+        File.WriteAllLines("input.csv", lines);
+
+        Console.WriteLine("Character leveled up successfully!");
     }
 }
